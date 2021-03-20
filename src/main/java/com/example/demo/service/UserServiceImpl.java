@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 @Service("userService")
@@ -48,14 +47,15 @@ public class UserServiceImpl implements UserService{
                 log.warn("ErrorMessage:" + ErrorMessage.USER_ALREADY_EXISTS + "(" + user.getUsername() + ")");
                 return Status.USER_ALREADY_EXISTS;
             }
-
-            user.getAuthorities().forEach( result -> {
-                Authorities getRoles = authoritiesRepository.findByRole(result.getRole());
-                roles.add(getRoles);
-                eRoleDb.add(getRoles.getRole());
-            });
-
         }
+
+        newUsers.getAuthorities().forEach( result -> {
+            Authorities getRoles = authoritiesRepository.findByRole(result.getRole());
+
+            roles.add(getRoles);
+            eRoleDb.add(getRoles.getRole());
+        });
+
 
         if(!roles.isEmpty()) {
             newUsers.setAuthorities(roles);
