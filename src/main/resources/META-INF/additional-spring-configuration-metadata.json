@@ -4,5 +4,10 @@
       "name": "bezkoder.app.jwtSecret",
       "type": "java.lang.String",
       "description": "Description for bezkoder.app.jwtSecret."
-  }
-] }
+    },
+    {
+      "name": "jwt.header",
+      "type": "java.lang.String",
+      "description": "Description for jwt.header."
+    }
+  ] }

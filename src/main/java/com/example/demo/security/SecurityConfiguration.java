@@ -1,10 +1,9 @@
 package com.example.demo.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.security.jwt.JWTConfigurer;
+import com.example.demo.security.jwt.TokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.SimpleDriverDataSource;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,23 +11,29 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import javax.sql.DataSource;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private DataSource dataSource;
+    private TokenProvider tokenProvider;
+    private CorsFilter corsFilter;
+    private JwtAuthenticationEntryPoint authenticationErrorHandler;
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    @Autowired
-    public void configAuthentication(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication().dataSource(dataSource)
-                .passwordEncoder(passwordEncoder())
-                .usersByUsernameQuery("select username, password, active from users where username=?")
-                .authoritiesByUsernameQuery("select u.username, a.role from users u LEFT JOIN authorities a ON u.authorities_id = a.id where username=?");
+    public SecurityConfiguration(
+            TokenProvider tokenProvider,
+            CorsFilter corsFilter,
+            JwtAuthenticationEntryPoint authenticationErrorHandler,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler
+    ){
+        this.tokenProvider = tokenProvider;
+        this.corsFilter = corsFilter;
+        this.authenticationErrorHandler = authenticationErrorHandler;
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     }
 
     @Bean
@@ -38,15 +43,38 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.httpBasic().and().cors().and().csrf().disable()
+        http
+                //we don't need CSRF because our token is invulnerable
+                .csrf().disable()
+
+                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling()
+                .authenticationEntryPoint(authenticationErrorHandler)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+
+                //create no session
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .and()
                 .authorizeRequests()
+
                 .antMatchers("/users").permitAll()
                 .antMatchers("/users/user/{id}").permitAll()
-                .antMatchers("/users/register").permitAll()
+                .antMatchers("/users/register").hasAuthority("ROLE_ADMIN")
                 .antMatchers("/users/update").permitAll()
                 .antMatchers("/users/login").permitAll()
-                .antMatchers("/users/logout").permitAll().and().logout();
+                .antMatchers("/users/logout").permitAll()
 
+                .anyRequest().authenticated()
+
+                .and().apply(securityConfigurerAdapter());
+
+    }
+
+    private JWTConfigurer securityConfigurerAdapter(){
+        return new JWTConfigurer(tokenProvider);
     }
 
 }
