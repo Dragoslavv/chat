@@ -15,12 +15,18 @@ public class Login {
     @Size(min = 4, max = 100)
     private String password;
 
+    private Boolean rememberMe;
+
     public String getUsername() {
         return username;
     }
 
     public String getPassword() {
         return password;
+    }
+
+    public Boolean getRememberMe() {
+        return rememberMe;
     }
 
     public void setUsername(String username) {
@@ -31,11 +37,16 @@ public class Login {
         this.password = password;
     }
 
+    public void setRememberMe(Boolean rememberMe) {
+        this.rememberMe = rememberMe;
+    }
+
     @Override
     public String toString() {
         return "Login{" +
                 "username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", rememberMe=" + rememberMe +
                 '}';
     }
 }
