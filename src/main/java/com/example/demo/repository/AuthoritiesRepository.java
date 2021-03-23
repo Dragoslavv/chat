@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AuthoritiesRepository extends JpaRepository<Authorities,Long> {
+public interface AuthoritiesRepository extends CrudRepository<Authorities,Long> {
     Authorities findByRole(ERole role);
 }

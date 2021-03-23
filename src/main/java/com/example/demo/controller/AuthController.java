@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.Users;
 import com.example.demo.enums.Status;
 import com.example.demo.errormsg.EntityNotFoundException;
-import com.example.demo.service.AuthService;
+import com.example.demo.service.AuthServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +14,7 @@ import javax.validation.Valid;
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     @CrossOrigin
     @PostMapping(produces = "application/json", path = "/login")
