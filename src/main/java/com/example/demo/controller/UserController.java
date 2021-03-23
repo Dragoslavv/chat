@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.JwtRequest;
 import com.example.demo.dto.JwtResponse;
 import com.example.demo.entity.Users;
 import com.example.demo.enums.Status;
@@ -35,7 +36,7 @@ public class UserController {
 
     @CrossOrigin
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
-    public ResponseEntity<?> createAuthenticationToken(@Valid @RequestBody Users users) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@Valid @RequestBody JwtRequest users) throws Exception {
 
         authenticate(users.getUsername(), users.getPassword());
 
