@@ -2,7 +2,6 @@ package com.example.demo.security;
 
 import com.example.demo.security.jwt.JwtAuthenticationEntryPoint;
 import com.example.demo.security.jwt.JwtRequestFilter;
-import com.example.demo.service.AuthServiceImpl;
 import com.example.demo.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -71,25 +70,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .deny()
                 .and()
                 // dont authenticate this particular request
-                .authorizeRequests().antMatchers("/users/authenticate").permitAll().
+                .authorizeRequests().antMatchers("/users/authenticate", "/users/register").permitAll().
                 // all other requests need to be authenticated
-                        anyRequest().authenticated().and().
+                anyRequest().authenticated().and().
                 // make sure we use stateless session; session won't be used to
                 // store user's state.
-                        exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
+                exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         // Add a filter to validate the tokens with every request
         httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http.httpBasic().and().cors().and().csrf().disable()
-//                .authorizeRequests()
-//                .antMatchers("/users").permitAll()
-//                .antMatchers("/users/user/{id}").permitAll()
-//                .antMatchers("/users/register").permitAll()
-//                .antMatchers("/users/update").permitAll()
-//                .antMatchers("/users/login").permitAll()
-//                .antMatchers("/users/logout").permitAll().and().logout();
-//    }
+
 }

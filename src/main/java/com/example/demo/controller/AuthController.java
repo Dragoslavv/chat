@@ -17,12 +17,6 @@ public class AuthController {
     private AuthServiceImpl authService;
 
     @CrossOrigin
-    @PostMapping(produces = "application/json", path = "/login")
-    public Status authenticate(@Valid @RequestBody Users users) throws EntityNotFoundException {
-        return authService.authenticate(users);
-    }
-
-    @CrossOrigin
     @PostMapping(produces = "application/json", path = "/logout")
     public Status logUserOut (@Valid @RequestBody Users users) throws EntityNotFoundException{
         return authService.logout(users);

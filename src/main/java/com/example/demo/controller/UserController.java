@@ -6,7 +6,6 @@ import com.example.demo.entity.Users;
 import com.example.demo.enums.Status;
 import com.example.demo.errormsg.EntityNotFoundException;
 import com.example.demo.security.jwt.JwtTokenUtil;
-import com.example.demo.service.UserService;
 import com.example.demo.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -79,12 +78,6 @@ public class UserController {
     @GetMapping(produces = "application/json", path = "/user/{id}")
     public Optional<Users> getByUser(@PathVariable Long id) throws EntityNotFoundException{
         return userService.getUserById(id);
-    }
-
-    @CrossOrigin
-    @DeleteMapping("/user/{id}")
-    public void deleteUser(@PathVariable Long id) throws EntityNotFoundException{
-        userService.deleteUser(id);
     }
 
 }

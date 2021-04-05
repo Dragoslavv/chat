@@ -3,7 +3,6 @@ package com.example.demo.entity;
 import com.example.demo.enums.ERole;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 
 @Entity
 public class Authorities {

@@ -8,10 +8,10 @@ import com.example.demo.errormsg.EntityNotFoundException;
 import com.example.demo.errormsg.ErrorMessage;
 import com.example.demo.repository.AuthoritiesRepository;
 import com.example.demo.repository.UsersRepository;
+import com.example.demo.security.jwt.JwtTokenUtil;
 import org.apache.log4j.Logger;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,13 +27,29 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Autowired
     private AuthoritiesRepository authoritiesRepository;
 
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     private final Logger log = Logger.getLogger(UserServiceImpl.class);
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws EntityNotFoundException {
         Users user = usersRepository.findByUsername(username);
+        List<Users> users = (List<Users>) usersRepository.findAll();
+
+        for (Users other : users) {
+
+            if( other.getUsername().equals(username)) {
+                other.setActive(true);
+                usersRepository.save(other);
+                log.info("Message : User is "+ Status.SUCCESS +" logged ");
+            }
+        }
+
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
+            log.warn("User not found with username:( " + username + ")");
+
+            throw new EntityNotFoundException(Users.class, "username", username);
         }
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
                 new ArrayList<>());
@@ -41,6 +57,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public Status saveUser(Users newUsers) {
+
         List<Users> users = (List<Users>) usersRepository.findAll();
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         newUsers.setPassword(bCryptPasswordEncoder.encode(newUsers.getPassword()));
@@ -55,7 +72,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         });
 
         for (Users user : users) {
-
             if(user.equals(newUsers)){
                 log.warn("ErrorMessage:" + ErrorMessage.USER_ALREADY_EXISTS + "(" + user.getUsername() + ")");
                 return Status.USER_ALREADY_EXISTS;
@@ -65,10 +81,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         newUsers.getAuthorities().forEach( result -> {
             Authorities getRoles = authoritiesRepository.findByRole(result.getRole());
 
-            roles.add(getRoles);
-            eRoleDb.add(getRoles.getRole());
+            if(getRoles != null) {
+                roles.add(getRoles);
+                eRoleDb.add(getRoles.getRole());
+            }
         });
-
 
         if(!roles.isEmpty()) {
             newUsers.setAuthorities(roles);
@@ -124,6 +141,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
              throw new EntityNotFoundException(Users.class, "id", userId.toString());
         }
         return optionalUsers;
-
     }
+
 }
