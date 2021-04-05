@@ -143,4 +143,28 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return optionalUsers;
     }
 
+    @Override
+    public Status logout(Users user) {
+        List<Users> users = (List<Users>) usersRepository.findAll();
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        log.info("Get all users : " + users );
+
+        for (Users other : users) {
+            boolean isPasswordMatch = encoder.matches(user.getPassword(), other.getPassword());
+            log.info("isPasswordMatch : " + isPasswordMatch );
+
+            if (other.equals(user) && isPasswordMatch) {
+                other.setActive(false);
+                usersRepository.save(other);
+                log.info("Message : User is "+ Status.SUCCESS +" logged out ");
+
+                return Status.SUCCESS;
+            }
+        }
+
+        log.warn("Message : "+ Status.USER_DOES_NOT_EXISTS+" {LOGOUT} ");
+        return Status.USER_DOES_NOT_EXISTS;
+    }
+
 }

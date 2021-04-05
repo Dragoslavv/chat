@@ -80,4 +80,10 @@ public class UserController {
         return userService.getUserById(id);
     }
 
+    @CrossOrigin
+    @PostMapping(produces = "application/json", path = "/logout")
+    public Status logUserOut (@Valid @RequestBody Users users) throws EntityNotFoundException{
+        return userService.logout(users);
+    }
+
 }

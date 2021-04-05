@@ -13,4 +13,5 @@ public interface UserService {
     Status update(Users existUser);
     List<Users> getAllUsers();
     Optional<Users> getUserById(Long userId);
+    Status logout(Users users);
 }
