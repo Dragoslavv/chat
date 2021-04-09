@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.ChatMessage;
 import com.example.demo.entity.ChatNotification;
-import com.example.demo.errormsg.EntityNotFoundException;
 import com.example.demo.service.ChatMessageService;
 import com.example.demo.service.ChatRoomService;
 import org.springframework.beans.factory.annotation.Autowired;

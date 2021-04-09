@@ -1,40 +1,44 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Authorities;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.Users;
-import com.example.demo.enums.ERole;
 import com.example.demo.enums.Status;
-import com.example.demo.errormsg.EntityNotFoundException;
-import com.example.demo.errormsg.ErrorMessage;
-import com.example.demo.repository.AuthoritiesRepository;
+import com.example.demo.errormsg.UsernameAlreadyExistsException;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UsersRepository;
-import com.example.demo.security.jwt.JwtTokenUtil;
-import org.apache.log4j.Logger;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.*;
 
 @Service("userService")
-public class UserServiceImpl implements UserService, UserDetailsService {
+@Slf4j
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UsersRepository usersRepository;
 
     @Autowired
-    private AuthoritiesRepository authoritiesRepository;
+    private RoleRepository rolesRepository;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private AuthenticationManager authenticationManager;
 
-    private final Logger log = Logger.getLogger(UserServiceImpl.class);
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws EntityNotFoundException {
-        Users user = usersRepository.findByUsername(username);
+    public String loginUser(String username, String password) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
         List<Users> users = (List<Users>) usersRepository.findAll();
 
         for (Users other : users) {
@@ -42,83 +46,46 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             if( other.getUsername().equals(username)) {
                 other.setActive(true);
                 usersRepository.save(other);
-                log.info("Message : User is "+ Status.SUCCESS +" logged ");
+                log.info("Message : User is SUCCESS logged ");
             }
         }
 
-        if (user == null) {
-            log.warn("User not found with username:( " + username + ")");
-
-            throw new EntityNotFoundException(Users.class, "username", username);
-        }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                new ArrayList<>());
+        return tokenProvider.generateToken(authentication);
     }
 
     @Override
-    public Status saveUser(Users newUsers) {
+    public Users saveUser(Users users) {
+        log.info("registering user {}", users.getUsername());
 
-        List<Users> users = (List<Users>) usersRepository.findAll();
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        newUsers.setPassword(bCryptPasswordEncoder.encode(newUsers.getPassword()));
-        Set<Authorities> roles = new HashSet<>();
-        Set<Authorities> strRoles = newUsers.getAuthorities();
+        if (usersRepository.existsByUsername(users.getUsername())) {
+            log.warn("registering user {}", users.getUsername());
 
-        Set<ERole> eRoleReq = new HashSet<>();
-        Set<ERole> eRoleDb = new HashSet<>();
-
-        strRoles.forEach( res -> {
-            eRoleReq.add(res.getRole());
-        });
-
-        for (Users user : users) {
-            if(user.equals(newUsers)){
-                log.warn("ErrorMessage:" + ErrorMessage.USER_ALREADY_EXISTS + "(" + user.getUsername() + ")");
-                return Status.USER_ALREADY_EXISTS;
-            }
+            throw new UsernameAlreadyExistsException(
+                    String.format("username %s already exists", users.getUsername()));
         }
 
-        newUsers.getAuthorities().forEach( result -> {
-            Authorities getRoles = authoritiesRepository.findByRole(result.getRole());
+        users.setActive(true);
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
+        Set<Role> roles = new HashSet<>();
 
-            if(getRoles != null) {
-                roles.add(getRoles);
-                eRoleDb.add(getRoles.getRole());
+        users.getRoles().forEach(result -> {
+            Role getRole = rolesRepository.findRoleByName(result.getRole());
+
+            if(getRole != null) {
+                roles.add(getRole);
             }
         });
 
         if(!roles.isEmpty()) {
-            newUsers.setAuthorities(roles);
+            users.setRoles(roles);
         }
 
-        usersRepository.save(newUsers);
-        log.info("Message : User is "+ Status.SUCCESS + " created");
-        return Status.SUCCESS;
-    }
-
-    @Override
-    public Status update(Users existUser) {
-        List<Users> users = (List<Users>) usersRepository.findAll();
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        existUser.setPassword(bCryptPasswordEncoder.encode(existUser.getPassword()));
-
-        for(Users user : users) {
-            if (Objects.equals(user.getId(), existUser.getId()) && !Objects.equals(user.getUsername(),existUser.getUsername()) ) {
-                usersRepository.save(existUser);
-                log.info("Message : User is "+ Status.SUCCESS + "updated");
-                return Status.SUCCESS;
-            }
-        }
-
-        log.warn("ErrorMessage:" + Status.FAILURE + "(" + existUser.getUsername() + ")");
-
-        return Status.FAILURE;
+        return usersRepository.save(users);
     }
 
     @Override
     public Status deleteUser(Long userId) {
         if(usersRepository.existsById(userId)) {
-            log.info(userId);
             usersRepository.deleteById(userId);
             log.info("User is " + Status.SUCCESS + " deleted (" + userId + ")");
             return Status.SUCCESS;
@@ -135,36 +102,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public Optional<Users> getUserById(Long userId) {
-        Optional<Users> optionalUsers = usersRepository.findById(userId);
-
-        if (optionalUsers.isEmpty()) {
-             throw new EntityNotFoundException(Users.class, "id", userId.toString());
-        }
-        return optionalUsers;
+        return usersRepository.findById(userId);
     }
 
-    @Override
-    public Status logout(Users user) {
-        List<Users> users = (List<Users>) usersRepository.findAll();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-        log.info("Get all users : " + users );
-
-        for (Users other : users) {
-            boolean isPasswordMatch = encoder.matches(user.getPassword(), other.getPassword());
-            log.info("isPasswordMatch : " + isPasswordMatch );
-
-            if (other.equals(user) && isPasswordMatch) {
-                other.setActive(false);
-                usersRepository.save(other);
-                log.info("Message : User is "+ Status.SUCCESS +" logged out ");
-
-                return Status.SUCCESS;
-            }
-        }
-
-        log.warn("Message : "+ Status.USER_DOES_NOT_EXISTS+" {LOGOUT} ");
-        return Status.USER_DOES_NOT_EXISTS;
+    public Optional<Users> findByUsername(String username) {
+        log.info("retrieving user {}", username);
+        return usersRepository.findByUsername(username);
     }
-
 }

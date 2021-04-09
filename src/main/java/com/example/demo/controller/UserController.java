@@ -1,19 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.JwtRequest;
-import com.example.demo.dto.JwtResponse;
+import com.example.demo.entity.InstaUserDetails;
 import com.example.demo.entity.Users;
 import com.example.demo.enums.Status;
-import com.example.demo.errormsg.EntityNotFoundException;
-import com.example.demo.security.jwt.JwtTokenUtil;
+import com.example.demo.payload.UserSummary;
+import com.example.demo.service.UserService;
 import com.example.demo.service.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,59 +22,27 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserServiceImpl userService;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-
-    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
-    public ResponseEntity<?> createAuthenticationToken(@Valid @RequestBody JwtRequest users) throws Exception {
-
-        authenticate(users.getUsername(), users.getPassword());
-
-        final UserDetails userDetails = userService.loadUserByUsername(users.getUsername());
-
-        final String token = jwtTokenUtil.generateToken(userDetails);
-
-        return ResponseEntity.ok(new JwtResponse(token));
-    }
-
-    private void authenticate(String username, String password) throws Exception {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
-        }
-    }
-
-    @PostMapping(consumes = "application/json", produces = "application/json", path = "/register")
-    public Object saveUser(@Valid @RequestBody Users users) throws EntityNotFoundException  {
-        return userService.saveUser(users);
-    }
-
-    @PostMapping(consumes = "application/json", produces = "application/json", path = "/update")
-    public Status updateUser(@Valid @RequestBody Users users) throws EntityNotFoundException {
-        return userService.update(users);
-    }
+    private UserService userService;
 
     @GetMapping(produces = "application/json")
-    public List<Users> getUsers() throws EntityNotFoundException {
+    public List<Users> getUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping(produces = "application/json", path = "/user/{id}")
-    public Optional<Users> getByUser(@PathVariable Long id) throws EntityNotFoundException{
+    public Optional<Users> getByUser(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
-    @PostMapping(produces = "application/json", path = "/logout")
-    public Status logUserOut (@Valid @RequestBody Users users) throws EntityNotFoundException{
-        return userService.logout(users);
+    @GetMapping(value = "/me", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public UserSummary getCurrentUser(@AuthenticationPrincipal InstaUserDetails userDetails) {
+
+        return UserSummary.builder()
+                .id(userDetails.getId())
+                .username(userDetails.getUsername())
+                .build();
     }
+
 
 }

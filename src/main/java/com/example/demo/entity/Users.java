@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -11,6 +12,12 @@ import java.util.Set;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,69 +32,28 @@ public class Users {
     private boolean active;
     @Column(updatable = false,nullable = false)
     @CreationTimestamp
-    private LocalDateTime create_at;
+    private LocalDateTime createdAt;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(	name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id",nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id",nullable = false))
     @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
-    private Set<Authorities> authorities = new HashSet<>();
+    private Set<Role> roles = new HashSet<>();
 
-    public Users(){}
+    public Users(Users user){
+        this.id = user.id;
+        this.username = user.username;
+        this.password = user.password;
+        this.createdAt = user.getCreatedAt();
+        this.active = user.active;
+        this.roles = user.roles;
+    }
 
     public Users(@NotBlank String username, @NotBlank String password) {
         this.username = username;
         this.password = password;
-        this.active = false;
-    }
-
-    public Long getId(){
-        return id;
-    }
-
-    public void setId( Long id ){
-        this.id = id;
-    }
-
-    public String getUsername(){
-        return username;
-    }
-
-    public void setUsername( String username ){
-        this.username = username;
-    }
-
-    public String getPassword(){
-        return password;
-    }
-
-    public void setPassword( String password ){
-        this.password = password;
-    }
-
-    public boolean getActive(){
-        return active;
-    }
-
-    public void setActive( boolean active){
-        this.active = active;
-    }
-
-    public LocalDateTime getCreated(){
-        return create_at;
-    }
-
-    public void setCreated(LocalDateTime create_at){
-        this.create_at = create_at;
-    }
-
-    public Set<Authorities> getAuthorities() {
-        return authorities;
-    }
-
-    public void setAuthorities(Set<Authorities> authorities) {
-        this.authorities = authorities;
+        this.active = true;
     }
 
     @Override
@@ -98,13 +64,4 @@ public class Users {
         return Objects.equals(username, user.username);
     }
 
-    @Override
-    public String toString() {
-        return "Users{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", active='" + active + '\'' +
-                '}';
-    }
 }
