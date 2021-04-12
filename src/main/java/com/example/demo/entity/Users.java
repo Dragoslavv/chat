@@ -33,13 +33,15 @@ public class Users {
     @Column(updatable = false,nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(	name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id",nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id",nullable = false))
     @JsonIgnoreProperties(value = {"applications", "hibernateLazyInitializer"})
     private Set<Role> roles = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "users")
+    private UploadFile uploadFile;
+
 
     public Users(Users user){
         this.id = user.id;

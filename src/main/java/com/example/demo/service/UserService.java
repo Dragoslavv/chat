@@ -12,7 +12,7 @@ public interface UserService {
     String loginUser(String username, String password);
     Users saveUser(Users users);
     Status deleteUser(Long userId);
-    List<Users> getAllUsers();
+    List<Users> findAll();
     Optional<Users> getUserById(Long userId);
     Optional<Users> findByUsername(String username);
 }
