@@ -44,8 +44,11 @@ public class UserController {
     public ResponseEntity<?> findAllUserSummaries(@AuthenticationPrincipal InstaUserDetails userDetails){
         log.info("retrieving all users summaries");
 
-        return ResponseEntity.ok(userService.findAll().stream().filter(users -> !users.getUsername().equals(userDetails.getUsername()))
-        .map(this::convertTo));
+        return ResponseEntity.ok(userService
+                .findAll()
+                .stream()
+                .filter(user -> !user.getUsername().equals(userDetails.getUsername()))
+                .map(this::convertTo));
     }
 
     @GetMapping(value = "/users/me", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -55,7 +58,9 @@ public class UserController {
 
         return UserSummary.builder()
                 .id(userDetails.getId())
+                .name(userDetails.getUsername())
                 .username(userDetails.getUsername())
+//                .profilePicture(userDetails.getUploadFile().getFileDownloadUri())
                 .build();
     }
 
@@ -73,8 +78,8 @@ public class UserController {
                 .builder()
                 .id(users.getId())
                 .username(users.getUsername())
-                .name(users.getUploadFile().getFileName())
-                .profilePicture(users.getUploadFile().getFileDownloadUri())
+                .name(users.getUsername())
+//                .profilePicture(users.getUploadFile().getFileDownloadUri())
                 .build();
     }
 
