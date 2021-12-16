@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -28,6 +29,25 @@ public class Users {
     @Column(nullable = false)
     @NotBlank
     private String password;
+    @Column(length = 150,nullable = false)
+    @NotBlank
+    private String firstName;
+    @Column(length = 150,nullable = false)
+    @NotBlank
+    private String lastName;
+    @Column(nullable = false)
+    @Email
+    @NotBlank
+    private String email;
+    @Column(length = 100,nullable = false)
+    @NotBlank
+    private String number;
+    @Column(nullable = false)
+    @NotBlank
+    private String address;
+    @Column(nullable = false)
+    @NotBlank
+    private String city;
     @Column(nullable = false)
     private boolean active;
     @Column(updatable = false,nullable = false)
@@ -50,6 +70,13 @@ public class Users {
         this.createdAt = user.getCreatedAt();
         this.active = user.active;
         this.roles = user.roles;
+        this.firstName = user.firstName;
+        this.lastName = user.lastName;
+        this.email = user.email;
+        this.number = user.number;
+        this.address = user.address;
+        this.city = user.city;
+
     }
 
     public Users(@NotBlank String username, @NotBlank String password) {

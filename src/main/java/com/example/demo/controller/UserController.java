@@ -1,12 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.InstaUserDetails;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.Users;
-import com.example.demo.enums.Status;
 import com.example.demo.errormsg.ResourceNotFoundException;
 import com.example.demo.payload.UserSummary;
 import com.example.demo.service.UserService;
-import com.example.demo.service.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -58,8 +57,13 @@ public class UserController {
 
         return UserSummary.builder()
                 .id(userDetails.getId())
-                .name(userDetails.getUsername())
+                .name(userDetails.getFirstName() + " " + userDetails.getLastName())
                 .username(userDetails.getUsername())
+                .email(userDetails.getEmail())
+                .number(userDetails.getNumber())
+                .address(userDetails.getAddress())
+                .city(userDetails.getCity())
+
 //                .profilePicture(userDetails.getUploadFile().getFileDownloadUri())
                 .build();
     }
@@ -79,6 +83,10 @@ public class UserController {
                 .id(users.getId())
                 .username(users.getUsername())
                 .name(users.getUsername())
+                .email(users.getEmail())
+                .number(users.getNumber())
+                .address(users.getAddress())
+                .city(users.getCity())
 //                .profilePicture(users.getUploadFile().getFileDownloadUri())
                 .build();
     }

@@ -38,7 +38,15 @@ public class AuthController {
         log.info("creating user {}", payload.getUsername());
 
         Users users = Users.builder().username(payload.getUsername())
-                .password(payload.getPassword()).roles(payload.getRole()).build();
+                .password(payload.getPassword())
+                .firstName(payload.getFirstName())
+                .lastName(payload.getLastName())
+                .email(payload.getEmail())
+                .number(payload.getNumber())
+                .address(payload.getAddress())
+                .city(payload.getCity())
+                .roles(payload.getRole())
+                .build();
 
         try {
             userService.saveUser(users);

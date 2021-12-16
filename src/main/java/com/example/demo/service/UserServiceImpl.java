@@ -6,6 +6,7 @@ import com.example.demo.enums.Status;
 import com.example.demo.errormsg.UsernameAlreadyExistsException;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UsersRepository;
+import com.example.demo.utils.Validation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -79,6 +80,13 @@ public class UserServiceImpl implements UserService {
         if(!roles.isEmpty()) {
             users.setRoles(roles);
         }
+
+        users.setFirstName(users.getFirstName());
+        users.setLastName(users.getLastName());
+        users.setEmail(users.getEmail());
+        users.setNumber(users.getNumber());
+        users.setAddress(users.getAddress());
+        users.setCity(users.getCity());
 
         return usersRepository.save(users);
     }
