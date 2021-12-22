@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
                     String.format("username %s already exists", users.getUsername()));
         }
 
-        users.setActive(true);
+        users.setActive(false);
         users.setPassword(passwordEncoder.encode(users.getPassword()));
         Set<Role> roles = new HashSet<>();
 

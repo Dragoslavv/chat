@@ -3,7 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.entity.InstaUserDetails;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.Users;
+import com.example.demo.errormsg.BadRequestException;
 import com.example.demo.errormsg.ResourceNotFoundException;
+import com.example.demo.errormsg.TokenRefreshException;
+import com.example.demo.errormsg.UsernameAlreadyExistsException;
 import com.example.demo.payload.UserSummary;
 import com.example.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -68,9 +71,9 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping(value = "/users/summary/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getUserSummary(@PathVariable("username") String username) {
-        log.info("retrieving user {}",username);
+    @GetMapping(value = "/users/summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getUserSummary(String username) {
+        log.info("search user with username {}",username);
 
         return userService.findByUsername(username)
                 .map(users -> ResponseEntity.ok(convertTo(users)))
@@ -90,6 +93,5 @@ public class UserController {
 //                .profilePicture(users.getUploadFile().getFileDownloadUri())
                 .build();
     }
-
 
 }

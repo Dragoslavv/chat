@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Users;
 import com.example.demo.errormsg.BadRequestException;
+import com.example.demo.errormsg.ResourceNotFoundException;
+import com.example.demo.errormsg.TokenRefreshException;
 import com.example.demo.errormsg.UsernameAlreadyExistsException;
 import com.example.demo.payload.ApiResponse;
 import com.example.demo.payload.JwtAuthenticationResponse;
@@ -12,9 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
@@ -62,5 +62,6 @@ public class AuthController {
                 .created(location)
                 .body(new ApiResponse(true,"User registered successfully"));
     }
+
 
 }
