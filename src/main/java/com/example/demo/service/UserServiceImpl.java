@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+
 @Service("userService")
 @Slf4j
 public class UserServiceImpl implements UserService {
@@ -38,8 +40,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String loginUser(String username, String password) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
         List<Users> users = (List<Users>) usersRepository.findAll();
 
         for (Users other : users) {
@@ -51,7 +51,29 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
         return tokenProvider.generateToken(authentication);
+    }
+
+    @Override
+    public boolean logout(String username){
+        List<Users> users = (List<Users>) usersRepository.findAll();
+
+        if (!username.isEmpty()) {
+
+            for (Users other : users) {
+
+                if( other.getUsername().equals(username)) {
+                    other.setActive(false);
+                    usersRepository.save(other);
+                    log.info("Message : active false ");
+                    return true;
+                }
+            }
+
+        }
+        return false;
     }
 
     @Override

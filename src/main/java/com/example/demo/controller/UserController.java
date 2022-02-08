@@ -7,16 +7,23 @@ import com.example.demo.errormsg.BadRequestException;
 import com.example.demo.errormsg.ResourceNotFoundException;
 import com.example.demo.errormsg.TokenRefreshException;
 import com.example.demo.errormsg.UsernameAlreadyExistsException;
+import com.example.demo.payload.LogoutRequest;
+import com.example.demo.payload.SignUpRequest;
 import com.example.demo.payload.UserSummary;
 import com.example.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import javax.ws.rs.Path;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -26,6 +33,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Transactional(readOnly = true)
     @GetMapping(value = "/users/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> findUser(@PathVariable("username") String username) {
         log.info("retrieving user {}", username);
@@ -35,6 +43,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException(username));
     }
 
+    @Transactional(readOnly = true)
     @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> findAll() {
         log.info("retrieving all users");
@@ -42,6 +51,7 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll());
     }
 
+    @Transactional(readOnly = true)
     @GetMapping(value = "/users/summaries", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> findAllUserSummaries(@AuthenticationPrincipal InstaUserDetails userDetails){
         log.info("retrieving all users summaries");
@@ -53,6 +63,7 @@ public class UserController {
                 .map(this::convertTo));
     }
 
+    @Transactional(readOnly = true)
     @GetMapping(value = "/users/me", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('USER')")
     @ResponseStatus(HttpStatus.OK)

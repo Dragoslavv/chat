@@ -15,4 +15,5 @@ public interface UserService {
     List<Users> findAll();
     Optional<Users> getUserById(Long userId);
     Optional<Users> findByUsername(String username);
+    boolean logout(String username);
 }
